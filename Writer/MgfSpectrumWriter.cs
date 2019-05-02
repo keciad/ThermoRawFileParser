@@ -62,13 +62,13 @@ namespace ThermoRawFileParser.Writer
                                 {
                                     var reaction = scanEvent.GetReaction(0);
                                     var precursorMass = reaction.PrecursorMass;
-                                    Writer.WriteLine("PEPMASS=" +
-                                                     precursorMass.ToString("0.0000000", CultureInfo.InvariantCulture));
-                                    //var precursorIntensity = 0.0;
-                                    //GetPrecursorIntensity(rawFile, _precursorScanNumber, precursorMass);
-                                    //Writer.WriteLine(precursorIntensity != null
-                                    //    ? $"PEPMASS={precursorMass:F7} {precursorIntensity}"
-                                    //    : $"PEPMASS={precursorMass:F7}");                                    
+                                    //Writer.WriteLine("PEPMASS=" +
+                                    //                precursorMass.ToString("0.0000000", CultureInfo.InvariantCulture));
+                                    double? precursorIntensity =
+                                        GetPrecursorIntensity(rawFile, _precursorScanNumber, precursorMass);
+                                    Writer.WriteLine(precursorIntensity != null
+                                        ? "PEPMASS=" + precursorMass.ToString("0.0000000", CultureInfo.InvariantCulture) + " " + precursorIntensity.ToString("0.0000000", CultureInfo.InvariantCulture)
+                                        : "PEPMASS=" + precursorMass.ToString("0.0000000", CultureInfo.InvariantCulture));
                                 }
                                 catch (ArgumentOutOfRangeException exception)
                                 {

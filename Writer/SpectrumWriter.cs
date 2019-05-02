@@ -10,6 +10,7 @@ namespace ThermoRawFileParser.Writer
     public abstract class SpectrumWriter : ISpectrumWriter
     {
         private const double Tolerance = 0.01;
+        private const string MsFilter = "ms";
 
         /// <summary>
         /// The parse input object
@@ -19,8 +20,8 @@ namespace ThermoRawFileParser.Writer
         /// <summary>
         /// The output stream writer
         /// </summary>
-        protected StreamWriter Writer;
-
+        protected StreamWriter Writer;       
+            
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -74,8 +75,9 @@ namespace ThermoRawFileParser.Writer
         /// </summary>
         /// <param name="rawFile">the RAW file object</param>
         /// <param name="precursorScanNumber">the precursor scan number</param>
+        /// <param name="precursorMass">the precursor mass</param>
         protected static double? GetPrecursorIntensity(IRawDataPlus rawFile, int precursorScanNumber,
-            double precursorMass, double retentionTime, double? isolationWidth)
+            double precursorMass)
         {
             double? precursorIntensity = null;
 
@@ -87,7 +89,7 @@ namespace ThermoRawFileParser.Writer
             {
                 var centroidStream = rawFile.GetCentroidStream(precursorScanNumber, false);
                 if (scan.CentroidScan.Length > 0)
-                {
+                {                    
                     for (var i = 0; i < centroidStream.Length; i++)
                     {
                         if (Math.Abs(precursorMass - centroidStream.Masses[i]) < Tolerance)
@@ -105,57 +107,28 @@ namespace ThermoRawFileParser.Writer
             {
                 rawFile.SelectInstrument(Device.MS, 1);
 
-                var component = new Component
-                {
-                    MassRange = new Limit
-                    {
-                        Low = (double) (precursorMass - isolationWidth / 2),
-                        High = (double) (precursorMass + isolationWidth / 2)
-                    },
-                    RtRange = new Limit
-                    {
-                        Low = rawFile.RetentionTimeFromScanNumber(precursorScanNumber),
-                        High = rawFile.RetentionTimeFromScanNumber(precursorScanNumber)
-                    }
-                };
-                ;
-
                 IChromatogramSettings[] allSettings =
                 {
-                    new ChromatogramTraceSettings(TraceType.MassRange)
+                    new ChromatogramTraceSettings(TraceType.BasePeak)
                     {
-                        Filter = Component.Filter,
+                        Filter = MsFilter,
                         MassRanges = new[]
                         {
-                            new Range(component.MassRange.Low, component.MassRange.High)
+                            new Range(precursorMass, precursorMass)
                         }
                     }
                 };
 
-                var rtFilteredScans = rawFile.GetFilteredScansListByTimeRange("",
-                    component.RtRange.Low,
-                    component.RtRange.High);
-                var data = rawFile.GetChromatogramData(allSettings, rtFilteredScans[0],
-                    rtFilteredScans[rtFilteredScans.Count - 1]);
-
+                var data = rawFile.GetChromatogramData(allSettings, precursorScanNumber,
+                    precursorScanNumber);
                 var chromatogramTrace = ChromatogramSignal.FromChromatogramData(data);
+                if (!chromatogramTrace.IsNullOrEmpty())
+                {
+                    precursorIntensity = chromatogramTrace[0].Intensities[0];
+                }
             }
 
             return precursorIntensity;
         }
-    }
-
-    public class Limit
-    {
-        public double Low { get; set; }
-        public double High { get; set; }
-    }
-
-    public class Component
-    {
-        public Limit RtRange { get; set; }
-        public Limit MassRange { get; set; }
-        public static string Filter { get; set; }
-        public string Name { get; set; }
     }
 }
