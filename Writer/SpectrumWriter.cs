@@ -9,7 +9,8 @@ namespace ThermoRawFileParser.Writer
 {
     public abstract class SpectrumWriter : ISpectrumWriter
     {
-        private const double Tolerance = 0.01;
+        private const double Tolerance = 0.01;  
+        protected const double ZeroDelta = 0.0001;     
         private const string MsFilter = "ms";
 
         /// <summary>
@@ -20,8 +21,8 @@ namespace ThermoRawFileParser.Writer
         /// <summary>
         /// The output stream writer
         /// </summary>
-        protected StreamWriter Writer;       
-            
+        protected StreamWriter Writer;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -40,18 +41,34 @@ namespace ThermoRawFileParser.Writer
         /// <param name="extension">The extension of the output file</param>
         protected void ConfigureWriter(string extension)
         {
-            var fullExtension = ParseInput.Gzip ? extension + ".gzip" : extension;
-            if (!ParseInput.Gzip || ParseInput.OutputFormat == OutputFormat.IndexMzML)
+            if (ParseInput.OutputFile == null)
             {
-                Writer = File.CreateText(ParseInput.OutputDirectory + "//" + ParseInput.RawFileNameWithoutExtension +
-                                         extension);
+                var fullExtension = ParseInput.Gzip ? extension + ".gzip" : extension;
+                if (!ParseInput.Gzip || ParseInput.OutputFormat == OutputFormat.IndexMzML)
+                {
+                    Writer = File.CreateText(ParseInput.OutputDirectory + "//" + ParseInput.RawFileNameWithoutExtension +
+                                             extension);
+                }
+                else
+                {
+                    var fileStream = File.Create(ParseInput.OutputDirectory + "//" + ParseInput.RawFileNameWithoutExtension + fullExtension);
+                    var compress = new GZipStream(fileStream, CompressionMode.Compress);
+                    Writer = new StreamWriter(compress);
+                } 
             }
             else
             {
-                var fileStream = File.Create(ParseInput.OutputDirectory + "//" +
-                                             ParseInput.RawFileNameWithoutExtension + fullExtension);
-                var compress = new GZipStream(fileStream, CompressionMode.Compress);
-                Writer = new StreamWriter(compress);
+                if (!ParseInput.Gzip || ParseInput.OutputFormat == OutputFormat.IndexMzML)
+                {
+                    Writer = File.CreateText(ParseInput.OutputFile); 
+                }
+                else
+                {
+                    var fileName = ParseInput.Gzip ? ParseInput.OutputFile + ".gzip" : ParseInput.OutputFile;
+                    var fileStream = File.Create(fileName);
+                    var compress = new GZipStream(fileStream, CompressionMode.Compress);
+                    Writer = new StreamWriter(compress);
+                }
             }
         }
 

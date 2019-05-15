@@ -33,7 +33,6 @@ namespace ThermoRawFileParser
             Log.Info("Started parsing " + parseInput.RawFilePath);
 
             // Create the IRawDataPlus object for accessing the RAW file
-            //var rawFile = RawFileReaderAdapter.FileFactory(rawFilePath);
             IRawDataPlus rawFile;
             using (rawFile = RawFileReaderFactory.ReadFile(parseInput.RawFilePath))
             {
@@ -64,8 +63,7 @@ namespace ThermoRawFileParser
 
                 if (parseInput.OutputMetadata != MetadataFormat.NONE)
                 {
-                    var metadataWriter = new MetadataWriter(parseInput.OutputDirectory,
-                        parseInput.RawFileNameWithoutExtension);
+                    var metadataWriter = new MetadataWriter(parseInput.OutputDirectory, parseInput.RawFileNameWithoutExtension);
                     switch (parseInput.OutputMetadata)
                     {
                         case MetadataFormat.JSON:
@@ -83,7 +81,6 @@ namespace ThermoRawFileParser
                     switch (parseInput.OutputFormat)
                     {
                         case OutputFormat.MGF:
-                        case OutputFormat.MGFNoProfileData:
                             spectrumWriter = new MgfSpectrumWriter(parseInput);
                             spectrumWriter.Write(rawFile, firstScanNumber, lastScanNumber);
                             break;
@@ -98,6 +95,7 @@ namespace ThermoRawFileParser
                             break;
                     }
                 }
+                
                 Log.Info("Finished parsing " + parseInput.RawFilePath);
             }
         }

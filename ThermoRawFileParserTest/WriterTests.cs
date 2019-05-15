@@ -10,7 +10,7 @@ using UsefulProteomicsDatabases;
 namespace ThermoRawFileParserTest
 {
     [TestFixture]
-    public class Tests
+    public class WriterTests
     {
         [Test]
         public void TestMgf()
@@ -19,8 +19,8 @@ namespace ThermoRawFileParserTest
             var tempFilePath = Path.GetTempPath();
 
             var testRawFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"small.RAW");
-            var parseInput = new ParseInput(testRawFile, tempFilePath, OutputFormat.MGF, false, MetadataFormat.NONE,
-                null, null, null, null, false);
+            var parseInput = new ParseInput(testRawFile, tempFilePath, null, OutputFormat.MGF, false, MetadataFormat.NONE,
+                null, null, null, null, false, false);
 
             RawFileParser.Parse(parseInput);
 
@@ -30,7 +30,6 @@ namespace ThermoRawFileParserTest
 
             var mgfData = Mgf.LoadAllStaticData(Path.Combine(tempFilePath, "small.mgf"));
             Assert.AreEqual(34, mgfData.NumSpectra);
-            Assert.IsEmpty(mgfData.GetMS1Scans());
         }
 
         [Test]
@@ -40,8 +39,8 @@ namespace ThermoRawFileParserTest
             var tempFilePath = Path.GetTempPath();
 
             var testRawFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"small.RAW");
-            var parseInput = new ParseInput(testRawFile, tempFilePath, OutputFormat.MzML, false, MetadataFormat.NONE,
-                null, null, null, null, false);
+            var parseInput = new ParseInput(testRawFile, tempFilePath, null, OutputFormat.MzML, false, MetadataFormat.NONE,
+                null, null, null, null, false, false);
 
             RawFileParser.Parse(parseInput);
 
@@ -66,9 +65,9 @@ namespace ThermoRawFileParserTest
             Console.WriteLine(tempFilePath);
 
             var testRawFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"small.RAW");
-            var parseInput = new ParseInput(testRawFile, tempFilePath, OutputFormat.IndexMzML, false,
+            var parseInput = new ParseInput(testRawFile, tempFilePath, null, OutputFormat.IndexMzML, false,
                 MetadataFormat.NONE,
-                null, null, null, null, false);
+                null, null, null, null, false, false);
 
             RawFileParser.Parse(parseInput);
 
